@@ -26,4 +26,14 @@ clean: ## Remove binaries and test artifacts
 lint: $(GOLANGCI_LINT) ## Run golangci linter.
 	$(GOLANGCI_LINT) run $(GOLANGCI_LINT_ARGS)
 
+.PHONY: vendor
+vendor: ## Tidy go.mod and vendor dependencies
+	go mod tidy && go mod vendor
 
+.PHONY: copy-crds
+copy-crds: vendor ## Copy vendored CRDs to manifests
+	cp ./vendor/github.com/openshift/api/operator/v1/zz_generated.crd-manifests/*_olms*.crd.yaml ./manifests
+
+.PHONY: test-sanity
+test-sanity: copy-crds ## Run sanity tests
+	git diff --exit-code
